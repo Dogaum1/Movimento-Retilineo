@@ -3,7 +3,7 @@
  |  \/  |/ _ \ \   / /_ _|  \/  | ____| \ | |_   _/ _ \  |  _ \| ____|_   _|_ _| |    /_/| \ | | ____/ _ \ 
  | |\/| | | | \ \ / / | || |\/| |  _| |  \| | | || | | | | |_) |  _|   | |  | || |   |_ _|  \| |  _|| | | |
  | |  | | |_| |\ V /  | || |  | | |___| |\  | | || |_| | |  _ <| |___  | |  | || |___ | || |\  | |__| |_| |
- |_|  |_|\___/  \_/  |___|_|  |_|_____|_| \_| |_| \___/  |_| \_\_____| |_| |___|_____|___|_| \_|_____\___/  0.3.2
+ |_|  |_|\___/  \_/  |___|_|  |_|_____|_| \_| |_| \___/  |_| \_\_____| |_| |___|_____|___|_| \_|_____\___/  0.3.3
 
 '''                                                                                                        
 from vpython import *
@@ -21,6 +21,8 @@ class RectilinearMovement:
         self.updateGraphs()
         self.run_thread = Thread(target = self.run)
         self.object_ace_variation_thread = Thread(target = self.sortAceVariationValue)
+        self.graph_thread = Thread(target = self.updateGraphsThread)
+        self.screen_thread = Thread(target = self.updateScreen)
     '''
         ┌─┐┬ ┬┌┐┌┌─┐┌─┐┌─┐┌─┐  ┌┬┐┌─┐  ┌─┐┬─┐┬┌─┐┌─┐┌─┐┌─┐
         ├┤ │ │││││  │ │├┤ └─┐   ││├┤   │  ├┬┘│├─┤│  ├─┤│ │
@@ -159,13 +161,19 @@ class RectilinearMovement:
     '''
     def start(self):
         # captura a velocidade informada pelo usuario
-        if self.isInitial:
-            self.object_vel.x = float((self.object_velocity_input.text))
+        if self.isInitial: 
+            if self.object_velocity_input.text != '':
+                self.object_vel.x = float((self.object_velocity_input.text))
+            else:
+                self.object_vel.x = 0
             self.isInitial = False
             self.object_velocity_input.disabled = True         
 
         # captura a aceleração informada pelo usuario
-        self.object_ace.x = float((self.object_ace_input.text))
+        if self.object_ace_input.text != '':
+            self.object_ace.x = float((self.object_ace_input.text))
+        else:
+            self.object_ace.x = 0
         
         # aumenta o valor x do grafico 2 | 5 posições a mais do valor maximo informado
         if self.object_vel.x > self.graph2_config.xmax:
@@ -179,7 +187,11 @@ class RectilinearMovement:
         self.running = True
 
         if not self.run_thread.is_alive():
+            # realiza todo o calculo do códio
             self.run_thread.start()
+            # atualiza os graficos
+            self.graph_thread.start()
+            # sorteia a variação de aceleração
             self.object_ace_variation_thread.start()
 
     def run(self):
@@ -203,19 +215,11 @@ class RectilinearMovement:
                 elif self.object.pos.x < self.ground.pos.x - (self.ground.size.x // 3):
                     self.ground.pos.x  = self.ground.pos.x - (self.ground.size.x * 0.65)
 
+                # calculo da velocidade média
                 self.object_avarage_speed.x = self.object.pos.x / self.t
-
-                # atualiza as setas e as informações que aparecem na tela
+                
+                # atualiza todos os items da tela (não os gráficos)
                 self.updateScreen()
-
-                # atualiza os graficos
-                self.updateGraphs()
-    
-    def update(self):
-        # self.object_ace = float(self.object_ace_input)
-        # self.object_ace_variation_slider.value = 0
-        # self.updateAceVariationSliderInfo()
-        pass
    
     '''
         ┌─┐┬ ┬┌┐┌┌─┐┌─┐┌─┐┌─┐  ┌┬┐┌─┐  ┌─┐┬─┐┌─┐┌─┐┬┌─┐┌─┐┌─┐
@@ -240,6 +244,13 @@ class RectilinearMovement:
         self.graph1.plot(self.t, self.object.pos.x)
         self.graph2.plot(self.t, self.object_vel.x)
         self.graph3.plot(self.t, self.object_ace.x + self.object_ace_variation.x)
+        
+    def updateGraphsThread(self):
+        while True:
+            while self.running:
+                self.graph1.plot(self.t, self.object.pos.x)
+                self.graph2.plot(self.t, self.object_vel.x)
+                self.graph3.plot(self.t, self.object_ace.x + self.object_ace_variation.x)   
 
     def resetGraphs(self):
         self.graph1.delete()
@@ -269,9 +280,12 @@ class RectilinearMovement:
         self.object.pos = self.object_initial_pos
         self.updateScreen()
         self.run_thread = Thread(target = self.run)
+        self.screen_thread = Thread(target = self.updateScreen)
+        self.graph_thread = Thread(target = self.updateGraphs)
         self.object_ace_variation_thread = Thread(target = self.sortAceVariationValue)
-
+        
     def updateScreen(self):
+    
         # atualiza as posições das setas de aceleração
         self.ace_right_arrow.pos.x = (self.object.pos.x - (self.object.radius / 2))
         self.ace_left_arrow.pos.x  = (self.object.pos.x + (self.object.radius / 2))

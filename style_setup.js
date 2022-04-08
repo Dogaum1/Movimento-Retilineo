@@ -48,13 +48,9 @@ var input_style =
 `
 
 var buttons = document.getElementsByTagName('button');
-
 for (let i = 0; i < buttons.length; i++) {
     let button = buttons[i];
     button.style.cssText = button_style
-    if(button.innerText == "Executar"){
-        var run_button = button
-    }
 }
 
 for(let i = 1; i <= 4; i++){
@@ -71,11 +67,9 @@ aceleration_variation_label.style.cssText = label_style
 aceleration_variation_label.style.cssText += 'width: 1100px;'
 
 var graph_style = `margin: 30px; box-shadow: 2px 2px 15px black;`
-
 var graph_id_list = ['graph0', 'graph1', 'graph2']
 for(let i = 0; i < 3; i++){
     var object = document.getElementById(graph_id_list[i]);
-    console.log(object)
     object.style.cssText += graph_style
 }
 
@@ -84,23 +78,3 @@ body_style = document.createElement('style');
 body_style.type = 'text/css';
 body.appendChild(body_style);
 body.style.cssText = 'text-align: -webkit-center;'
-
-var msg = ""
-run_button.onclick = function readyToRun(){
-    msg = ""
-    if(object_initial_aceleration_input.value == ""){
-        msg += "Informe a aceleração do objeto!\n"
-    }
-    if(isNaN(object_initial_aceleration_input.value)){
-        msg += "Digite apenas numeros para informar a aceleração!\n"
-    }
-    if(object_initial_velocity_input.value == ""){
-        msg += "Informe a avelocidade inicial do objeto!\n"
-    }
-    if(isNaN(object_initial_velocity_input.value)){
-        msg += "Digite apenas numeros para informar a velocidade inicial!"
-    }
-    if(!msg == ""){
-        alert(msg)
-    }
-}
