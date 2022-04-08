@@ -3,7 +3,7 @@
  |  \/  |/ _ \ \   / /_ _|  \/  | ____| \ | |_   _/ _ \  |  _ \| ____|_   _|_ _| |    /_/| \ | | ____/ _ \ 
  | |\/| | | | \ \ / / | || |\/| |  _| |  \| | | || | | | | |_) |  _|   | |  | || |   |_ _|  \| |  _|| | | |
  | |  | | |_| |\ V /  | || |  | | |___| |\  | | || |_| | |  _ <| |___  | |  | || |___ | || |\  | |__| |_| |
- |_|  |_|\___/  \_/  |___|_|  |_|_____|_| \_| |_| \___/  |_| \_\_____| |_| |___|_____|___|_| \_|_____\___/  0.3.1
+ |_|  |_|\___/  \_/  |___|_|  |_|_____|_| \_| |_| \___/  |_| \_\_____| |_| |___|_____|___|_| \_|_____\___/  0.3.2
 
 '''                                                                                                        
 from vpython import *
@@ -34,10 +34,10 @@ class RectilinearMovement:
         self.object_vel = vector(0,0,0)
         self.object_initial_vel = vector(0,0,0)
         self.object_initial_pos = vector(0,1,0)
-        self.running = False
-        self.isInitial = True 
         self.object_ace_variation = vector(0,0,0)
         self.object_avarage_speed = vector(0,0,0)
+        self.running = False
+        self.isInitial = True 
 
     def createObjects(self):
         # esfera
@@ -53,7 +53,7 @@ class RectilinearMovement:
         # criação e configuração da seta da velocidade
         self.vel_right_arrow = arrow(pos = vector(self.object.pos.x + (self.object.radius * 1.5) , self.object.pos.y, self.object.pos.z), length = 2)
         self.vel_left_arrow = arrow(pos = vector(self.object.pos.x - (self.object.radius * 1.5) , self.object.pos.y, self.object.pos.z), length = 2)
-        self.vel_left_arrow.rotate(1*pi, vector(0,1,0))
+        self.vel_left_arrow.rotate(pi, vector(0,1,0))
         self.vel_right_arrow.visible = False
         self.vel_left_arrow.visible = False
 
@@ -94,7 +94,7 @@ class RectilinearMovement:
         self.hSpace(3)
        
         # texto acereleração
-        self.object_ace_label = wtext(text = "Aceleração:")
+        self.object_ace_label = wtext(text = "Aceleração Inicial:")
         self.hSpace(2)
        
         # caixa de texto para a inserção da aceleração
@@ -103,6 +103,10 @@ class RectilinearMovement:
 
         # botão de iniciar a animação junto com os graficos
         self.run_button = button(bind = self.start, text = "Executar")
+        self.hSpace(3)
+
+        # botão de iniciar a animação junto com os graficos
+        self.pause_button = button(bind = self.pause, text = "Pausar")
         self.hSpace(3)
 
         # botão para reiniciar todos os valores
@@ -115,11 +119,11 @@ class RectilinearMovement:
         self.vSpace(2)
     
         # slider variação da aceleração
-        self.object_ace_variation_slider = slider(bind = self.updateAceVariationSliderInfo , step = 1, min = -100, max = 100, length = 1100)
+        self.object_ace_variation_slider = slider(bind = self.updateAceVariationSliderInfo , step = 1, min = -10, max = 10, length = 1100)
         self.object_ace_variation_slider.value = 0
 
         self.vSpace(2)
-        self.current_object_ace_variation_info = wtext(text = str(self.object_ace_variation_slider.value))
+        self.current_object_ace_variation_info = wtext(text = f"{str(self.object_ace_variation_slider.value)}m/s²")
 
         self.vSpace(3)
         # texto "Posição X = "
@@ -127,7 +131,7 @@ class RectilinearMovement:
         self.hSpace(1)
         
         # texto informando a posição X em tempo real
-        self.object_pos_x_info = wtext(text = self.object.pos.x)
+        self.object_pos_x_info = wtext(text = f"{self.object.pos.x}m")
         self.hSpace(3)
         
         # texto "Tempo = "
@@ -135,14 +139,14 @@ class RectilinearMovement:
         self.hSpace(1)
         
         # texto informando a o tempo em tempo real
-        self.time_info = wtext(text = self.t)
+        self.time_info = wtext(text = f"{self.t}s")
         self.hSpace(3)
 
         # texto "Tempo = "
         self.object_avarage_speed_label = wtext(text = "Velocidade média = ")
         self.hSpace(1)
 
-        self.object_avarage_speed_info = wtext(text = self.object_avarage_speed.x)
+        self.object_avarage_speed_info = wtext(text = f"{self.object_avarage_speed.x}m/s")
         self.hSpace(1)
 
         self.vSpace(1)
@@ -179,35 +183,93 @@ class RectilinearMovement:
             self.object_ace_variation_thread.start()
 
     def run(self):
-        while self.running:
-            # fps
-            rate(300)
+        while True:
+            while self.running:
+                # fps
+                rate(300)
 
-            # calculo do tempo
-            self.t = self.t + self.dt
-            
-            # calculo da velocidade
-            self.object_vel.x   = self.object_vel.x + (self.object_ace.x * self.dt) + (self.object_ace_variation.x * self.dt)
+                # calculo do tempo
+                self.t = self.t + self.dt
+                
+                # calculo da velocidade
+                self.object_vel.x   = self.object_vel.x + (self.object_ace.x * self.dt) + (self.object_ace_variation.x * self.dt)
 
-            # calculo da posição da esfera
-            self.object.pos.x   = self.object.pos.x + (self.object_vel.x * self.dt)
-            
-            # aumenta o tamanho do chão quando a esfere está proxima do fim
-            if self.object.pos.x   > self.ground.pos.x + (self.ground.size.x // 3):
-                self.ground.pos.x  = self.ground.pos.x + (self.ground.size.x * 0.65)
-            elif self.object.pos.x < self.ground.pos.x - (self.ground.size.x // 3):
-                self.ground.pos.x  = self.ground.pos.x - (self.ground.size.x * 0.65)
+                # calculo da posição da esfera
+                self.object.pos.x   = self.object.pos.x + (self.object_vel.x * self.dt)
+                
+                # aumenta o tamanho do chão quando a esfere está proxima do fim
+                if self.object.pos.x   > self.ground.pos.x + (self.ground.size.x // 3):
+                    self.ground.pos.x  = self.ground.pos.x + (self.ground.size.x * 0.65)
+                elif self.object.pos.x < self.ground.pos.x - (self.ground.size.x // 3):
+                    self.ground.pos.x  = self.ground.pos.x - (self.ground.size.x * 0.65)
 
-            self.object_avarage_speed.x = self.object.pos.x / self.t
-        
-            # atualiza as informações que aparecem na tela
-            self.updateScreenInfo()
+                self.object_avarage_speed.x = self.object.pos.x / self.t
 
-            # atualiza as setas
-            self.updateScreen()
+                # atualiza as setas e as informações que aparecem na tela
+                self.updateScreen()
 
-            # atualiza os graficos
-            self.updateGraphs()
+                # atualiza os graficos
+                self.updateGraphs()
+    
+    def update(self):
+        # self.object_ace = float(self.object_ace_input)
+        # self.object_ace_variation_slider.value = 0
+        # self.updateAceVariationSliderInfo()
+        pass
+   
+    '''
+        ┌─┐┬ ┬┌┐┌┌─┐┌─┐┌─┐┌─┐  ┌┬┐┌─┐  ┌─┐┬─┐┌─┐┌─┐┬┌─┐┌─┐┌─┐
+        ├┤ │ │││││  │ │├┤ └─┐   ││├┤   │ ┬├┬┘├─┤├┤ ││  │ │└─┐
+        └  └─┘┘└┘└─┘└─┘└─┘└─┘  ─┴┘└─┘  └─┘┴└─┴ ┴└  ┴└─┘└─┘└─┘
+    '''
+
+    def createGraph(self):
+        # grafico 1 posição / tempo
+        self.graph1_config = graph(width = self.WIDTH, _height = 400, title = 'Posição(m) X Tempo(s)', xtitle = 'Tempo(s)', ytitle = 'Posição(m)', foreground = color.black, background = color.white, fast = False)
+        self.graph1 = gcurve(graph = self.graph1_config, color = color.blue, width = 5)
+    
+        # grafico 2 velocidade / tempo
+        self.graph2_config = graph(width = self.WIDTH, _height = 400, title = 'Velocidade(m/s) X Tempo(s)', xtitle = 'Tempo(s)', ytitle = 'Velocidade(m/s)', foreground = color.black, background = color.white, fast = False, scroll = True, xmin = 0, xmax = 10)
+        self.graph2 = gcurve(graph = self.graph2_config, color = color.red, width = 5)
+
+        # grafico 3 aceleração / tempo
+        self.graph3_config = graph(width = self.WIDTH, _height = 400, title = 'Aceleração(m/s²) X Tempo(s)', xtitle = 'Tempo(s)', ytitle = 'Aceleração(m/s²)', foreground = color.black, background = color.white, fast = False, scroll = True, xmin = 0, xmax = 5)
+        self.graph3 = gcurve(graph = self.graph3_config, color = color.green, width = 5)
+ 
+    def updateGraphs(self):
+        self.graph1.plot(self.t, self.object.pos.x)
+        self.graph2.plot(self.t, self.object_vel.x)
+        self.graph3.plot(self.t, self.object_ace.x + self.object_ace_variation.x)
+
+    def resetGraphs(self):
+        self.graph1.delete()
+        self.graph2.delete()
+        self.graph3.delete()
+
+    '''
+        ┬ ┬┬ ┌┬┐┬┬  ┬┌┬┐┌─┐┬─┐┬┌─┐┌─┐
+        │ ││  │ ││  │ │ ├─┤├┬┘││ │└─┐
+        └─┘┴─┘┴ ┴┴─┘┴ ┴ ┴ ┴┴└─┴└─┘└─┘
+    '''
+
+    def vSpace(self, times):
+        # espaço na vertical
+        scene.append_to_caption(f'\n' * times)
+
+    def hSpace(self, times):
+        # espaço na horizontal
+        scene.append_to_caption(f' ' * times)
+
+    def reset(self):
+        # reseta todos os valores
+        self.setInitialValues()
+        self.resetGraphs()
+        self.object_velocity_input.disabled = False
+        self.reset_button.disabled = True
+        self.object.pos = self.object_initial_pos
+        self.updateScreen()
+        self.run_thread = Thread(target = self.run)
+        self.object_ace_variation_thread = Thread(target = self.sortAceVariationValue)
 
     def updateScreen(self):
         # atualiza as posições das setas de aceleração
@@ -227,7 +289,7 @@ class RectilinearMovement:
         self.ace_text.visible = True
         self.vel_text.visible = True
         self.vel_text.text = f"V: {self.object_vel.x:.2f} m/s"
-        self.ace_text.text = f"A: {self.object_ace.x + self.object_ace_variation.x:.2f} m/s"
+        self.ace_text.text = f"A: {self.object_ace.x + self.object_ace_variation.x:.2f} m/s²"
 
         if (self.object_vel.x > 0):
             self.vel_text.pos = self.vel_text_right_pos
@@ -237,8 +299,11 @@ class RectilinearMovement:
             self.vel_text.align = 'right'
             
         self.ace_text.pos = self.ace_text_pos
+        self.object_pos_x_info.text = f'{self.object.pos.x:.2f} m'
+        self.time_info.text  = f'{self.t:.2f} s'
+        self.object_avarage_speed_info.text = f'{self.object_avarage_speed.x:.2f} m/s'        
         
-        # Atualização gráfica das setas em relação a aceleração
+        # atualização gráfica das setas em relação a aceleração
         if self.object_ace.x  + self.object_ace_variation.x == 0:
             self.ace_right_arrow.visible = False
             self.ace_left_arrow.visible  = False
@@ -249,7 +314,7 @@ class RectilinearMovement:
             self.ace_right_arrow.visible = False
             self.ace_left_arrow.visible  = True
 
-        # Atualização gráfica das setas em relação a velocidade
+        # atualização gráfica das setas em relação a velocidade
         if self.object_vel.x == 0:
             self.vel_right_arrow.visible = False
             self.vel_left_arrow.visible  = False
@@ -260,83 +325,40 @@ class RectilinearMovement:
             self.vel_right_arrow.visible = False
             self.vel_left_arrow.visible  = True
 
-    def updateScreenInfo(self):
-        self.object_pos_x_info.text = f'{self.object.pos.x:.2f}'
-        self.time_info.text  = f'{self.t:.2f} s'
-        self.object_avarage_speed_info.text = f'{self.object_avarage_speed.x:.2f} m/s'
-   
-    '''
-        ┌─┐┬ ┬┌┐┌┌─┐┌─┐┌─┐┌─┐  ┌┬┐┌─┐  ┌─┐┬─┐┌─┐┌─┐┬┌─┐┌─┐┌─┐
-        ├┤ │ │││││  │ │├┤ └─┐   ││├┤   │ ┬├┬┘├─┤├┤ ││  │ │└─┐
-        └  └─┘┘└┘└─┘└─┘└─┘└─┘  ─┴┘└─┘  └─┘┴└─┴ ┴└  ┴└─┘└─┘└─┘
-    '''
-
-    def createGraph(self):
-        # grafico 1 posição / tempo
-        self.graph1_config = graph(width = self.WIDTH, _height = 400, title = 'Posição / Tempo', xtitle = 'Tempo', ytitle = 'Posição', foreground = color.black, background = vector(0, 0.090196, 0.121569), fast = False)
-        self.graph1 = gcurve(graph = self.graph1_config, color = color.white, width = 5)
-    
-        # grafico 2 velocidade / tempo
-        self.graph2_config = graph(width = self.WIDTH, _height = 400, title = 'Velocidade / Tempo', xtitle = 'Tempo', ytitle = 'Velocidade', foreground = color.black, background = vector(0.030392, 0.447059, 0.301961), fast = True, scroll = True, xmin = 0, xmax = 10)
-        self.graph2 = gcurve(graph = self.graph2_config, color = color.white, width = 5)
-
-        # grafico 3 aceleração / tempo
-        self.graph3_config = graph(width = self.WIDTH, _height = 400, title = 'Aceleração / Tempo', xtitle = 'Tempo', ytitle = 'Aceleração', foreground = color.black, background = vector(0.784314, 0.188235, 0.329412), fast = True, scroll = True, xmin = 0, xmax = 5)
-        self.graph3 = gcurve(graph = self.graph3_config, color = color.white, width = 5)
- 
-    def updateGraphs(self):
-        self.graph1.plot(self.t, self.object.pos.x)
-        self.graph2.plot(self.t, self.object_vel.x)
-        self.graph3.plot(self.t, self.object_ace.x + self.object_ace_variation.x)
-
-    '''
-        ┬ ┬┬ ┌┬┐┬┬  ┬┌┬┐┌─┐┬─┐┬┌─┐┌─┐
-        │ ││  │ ││  │ │ ├─┤├┬┘││ │└─┐
-        └─┘┴─┘┴ ┴┴─┘┴ ┴ ┴ ┴┴└─┴└─┘└─┘
-    '''
-
-    def vSpace(self, times):
-        # espaço na vertical
-        scene.append_to_caption(f'\n' * times)
-
-    def hSpace(self, times):
-        # espaço na horizontal
-        scene.append_to_caption(f' ' * times)
-
-    def reset(self):
-        # reseta todos os valores
-        self.setInitialValues()
-        self.updateGraphs()
-        self.object_velocity_input.disabled = False
-        self.reset_button.disabled = True
-        self.object.pos = self.object_initial_pos
-        self.updateScreen()
-        self.run_thread = Thread(target = self.run)
-        self.object_ace_variation_thread = Thread(target = self.sortAceVariationValue)
-
+    # atualiza o texto ao lado do slider
     def updateAceVariationSliderInfo(self):
-        self.current_object_ace_variation_info.text = str(self.object_ace_variation_slider.value)
+        self.current_object_ace_variation_info.text = f"{str(self.object_ace_variation_slider.value)}m/s²"
 
+    # sorteia a variação da aceleração
     def sortAceVariationValue(self):
-        while self.running:
-            time.sleep(2)
-            v = float(self.current_object_ace_variation_info.text)
+        while True:
+            while self.running:
+                time.sleep(2)
+                
+                v = self.object_ace_variation_slider.value
+
+                if v < 0:
+                    sorted_v = random.uniform(v, 0)
+                else:
+                    sorted_v = random.uniform(0, v)
             
-            if v < 0:
-                sorted_v = random.uniform(v, 0)
-            else:
-                sorted_v = random.uniform(0, v)
-        
-            if v!= 0:
-                if self.object_ace_variation.x > v:
-                    while self.object_ace_variation.x > sorted_v:
-                        self.object_ace_variation.x = self.object_ace_variation.x - self.dt
-                        time.sleep(self.dt)
-                elif self.object_ace_variation.x < v:
-                    while self.object_ace_variation.x < sorted_v:
-                        self.object_ace_variation.x = self.object_ace_variation.x + self.dt
-                        time.sleep(self.dt)
-        
+                if v!= 0:
+                    if self.object_ace_variation.x > v:
+                        while self.object_ace_variation.x > sorted_v:
+                            self.object_ace_variation.x = self.object_ace_variation.x - self.dt
+                            time.sleep(self.dt)
+                    elif self.object_ace_variation.x < v:
+                        while self.object_ace_variation.x < sorted_v:
+                            self.object_ace_variation.x = self.object_ace_variation.x + self.dt
+                            time.sleep(self.dt)
+    
+    def pause(self):
+        if self.running:
+            self.running = False
+            self.pause_button.text = "Retomar"
+        else:
+            self.running = True
+            self.pause_button.text = "Pausar"
                  
     def nothing(self):
         # literalmente nada

@@ -1,5 +1,3 @@
-
-var buttons = document.getElementsByTagName('button');
 var button_style = 
 `
 background-color: #2ea44f; 
@@ -24,21 +22,6 @@ touch-action: manipulation;
 vertical-align: middle;
 white-space: nowrap;
 `
-
-for (let i = 0; i < buttons.length; i++) {
-    let button = buttons[i];
-    button.style.cssText = button_style
-    if(button.innerText == "Executar"){
-        var run_button = button
-    }
-}
-
-var object_initial_velocity_label = document.getElementById('1');
-var object_initial_velocity_input = document.getElementById('2');
-var object_initial_aceleration_label = document.getElementById('3');
-var object_initial_aceleration_input = document.getElementById('4');
-var aceleration_variation_label = document.getElementById('7');
-
 var label_style = 
 `
     background-color: rgb(0, 105, 146);
@@ -52,11 +35,6 @@ var label_style =
     display: inline-block;
     margin-right: -20px;
 `
-object_initial_velocity_label.style.cssText = label_style
-object_initial_aceleration_label.style.cssText = label_style
-aceleration_variation_label.style.cssText = label_style
-aceleration_variation_label.style.cssText += 'width: 1100px;'
-
 var input_style = 
 `
     color: black;
@@ -68,17 +46,38 @@ var input_style =
     text-align: center;
     width: 100;
 `
-object_initial_velocity_input.style.cssText = input_style
-object_initial_aceleration_input.style.cssText = input_style
+
+var buttons = document.getElementsByTagName('button');
+
+for (let i = 0; i < buttons.length; i++) {
+    let button = buttons[i];
+    button.style.cssText = button_style
+    if(button.innerText == "Executar"){
+        var run_button = button
+    }
+}
+
+for(let i = 1; i <= 4; i++){
+    var object = document.getElementById(i);
+    if(i % 2 == 0){
+        object.style.cssText = input_style
+    }else{
+        object.style.cssText = label_style
+    }
+}
+
+var aceleration_variation_label = document.getElementById('8');
+aceleration_variation_label.style.cssText = label_style
+aceleration_variation_label.style.cssText += 'width: 1100px;'
 
 var graph_style = `margin: 30px; box-shadow: 2px 2px 15px black;`
-var graph0_div = document.getElementById('graph0')
-var graph1_div = document.getElementById('graph1')
-var graph2_div = document.getElementById('graph2')
 
-graph0_div.style.cssText += graph_style
-graph1_div.style.cssText += graph_style
-graph2_div.style.cssText += graph_style
+var graph_id_list = ['graph0', 'graph1', 'graph2']
+for(let i = 0; i < 3; i++){
+    var object = document.getElementById(graph_id_list[i]);
+    console.log(object)
+    object.style.cssText += graph_style
+}
 
 var body = document.body
 body_style = document.createElement('style');
